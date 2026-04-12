@@ -127,3 +127,17 @@ git tag -a v0.1.0 -m "chore: initial template baseline"
 ### 6. Append a log entry here when done
 
 Use the entry template at the top of this file.
+
+---
+
+## [2026-04-12] Git Workflow Master — Repository initialisation and hook setup
+
+- Status: DONE
+- Branch: main
+- Changed: lefthook.yml, .lefthook/commit-msg/validate-msg.sh, package.json, package-lock.json, workflow_state.md
+- Summary:
+  - `git init` + `git checkout -b main` created the repository; `dev` branch created from root commit
+  - Lefthook installed (`npm install --save-dev lefthook`); `lefthook.yml` written with pre-commit (format + typecheck) and commit-msg hooks; `.lefthook/commit-msg/validate-msg.sh` created (executable) to enforce Conventional Commits pattern
+  - First commit `chore: initial GEM template scaffold` made on `main` (43 files, both hooks passed — 0 type errors, 0 format violations); baseline tagged `v0.1.0`
+- Unresolved:
+  - Branch protection rules for `main` and `dev` must be configured after pushing to GitHub/Gitea (Step 4 in Next Steps above — requires remote)
