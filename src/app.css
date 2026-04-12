@@ -1,0 +1,414 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn-svelte/tailwind.css';
+
+/* ── Self-hosted fonts (DSGVO-konform — kein CDN) ───────────────── */
+@import '@fontsource/barlow-condensed/400.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/dm-sans/400.css';
+@import '@fontsource/dm-sans/500.css';
+@import '@fontsource/dm-sans/600.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ══════════════════════════════════════════════════════════════════
+   GEM Design Tokens — Copper Dark (default)
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+	/* Brand Copper */
+	--gem-copper: #c47a38;
+	--gem-copper-light: #e09a55;
+	--gem-copper-dark: #8a5228;
+	--gem-copper-glow: rgba(196, 122, 56, 0.22);
+
+	/* Backgrounds */
+	--gem-bg: #07090c;
+	--gem-surface: #0f1318;
+	--gem-surface-2: #171c24;
+	--gem-surface-3: #1f2530;
+
+	/* Text */
+	--gem-text: #ede8e0;
+	--gem-text-muted: #6c7a8a;
+	--gem-text-dim: #38424e;
+
+	/* Borders */
+	--gem-border: rgba(196, 122, 56, 0.2);
+	--gem-border-subtle: rgba(255, 255, 255, 0.055);
+
+	/* Theme-variant tokens (overridden per theme) */
+	--gem-glass-bg: rgba(7, 9, 12, 0.88); /* nav-glass background */
+	--gem-button-fg: #ffffff; /* text on filled buttons */
+
+	/* shadcn/ui compat */
+	--background: var(--gem-bg);
+	--foreground: var(--gem-text);
+	--card: var(--gem-surface);
+	--card-foreground: var(--gem-text);
+	--popover: var(--gem-surface-2);
+	--popover-foreground: var(--gem-text);
+	--primary: var(--gem-copper);
+	--primary-foreground: #ffffff;
+	--secondary: var(--gem-surface-2);
+	--secondary-foreground: var(--gem-text);
+	--muted: var(--gem-surface);
+	--muted-foreground: var(--gem-text-muted);
+	--accent: var(--gem-surface-2);
+	--accent-foreground: var(--gem-text);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: var(--gem-border);
+	--input: var(--gem-border-subtle);
+	--ring: var(--gem-copper);
+	--radius: 0.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Theme 2 — Sage Light  (data-theme="theme2" on <html>)
+   ══════════════════════════════════════════════════════════════════ */
+[data-theme='theme2'] {
+	/* Accent */
+	--gem-copper: #b6d7a8;
+	--gem-copper-light: #d4e6cc;
+	--gem-copper-dark: #92ba80;
+	--gem-copper-glow: rgba(182, 215, 168, 0.35);
+
+	/* Backgrounds */
+	--gem-bg: #fcfdfc;
+	--gem-surface: #ffffff;
+	--gem-surface-2: #f2f6f0;
+	--gem-surface-3: #e8efe5;
+
+	/* Text — dark for light theme */
+	--gem-text: #1c2e1c;
+	--gem-text-muted: #4a6b4a;
+	--gem-text-dim: #8aaa8a;
+
+	/* Borders */
+	--gem-border: rgba(146, 186, 128, 0.4);
+	--gem-border-subtle: rgba(0, 0, 0, 0.07);
+
+	/* Theme-variant tokens */
+	--gem-glass-bg: rgba(232, 239, 229, 0.95);
+	--gem-button-fg: #1c2e1c;
+
+	/* shadcn compat */
+	--background: var(--gem-bg);
+	--foreground: var(--gem-text);
+	--card: var(--gem-surface);
+	--card-foreground: var(--gem-text);
+	--popover: var(--gem-surface-2);
+	--popover-foreground: var(--gem-text);
+	--primary: var(--gem-copper);
+	--primary-foreground: var(--gem-button-fg);
+	--secondary: var(--gem-surface-2);
+	--secondary-foreground: var(--gem-text);
+	--muted: var(--gem-surface);
+	--muted-foreground: var(--gem-text-muted);
+	--accent: var(--gem-surface-2);
+	--accent-foreground: var(--gem-text);
+	--border: var(--gem-border);
+	--input: var(--gem-border-subtle);
+	--ring: var(--gem-copper);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Theme 3 — Vibrant Night  (data-theme="theme3" on <html>)
+   ══════════════════════════════════════════════════════════════════ */
+[data-theme='theme3'] {
+	/* Accent — teal primary, yellow highlight, orange depth */
+	--gem-copper: #029ab2;
+	--gem-copper-light: #fbf268;
+	--gem-copper-dark: #eb8900;
+	--gem-copper-glow: rgba(2, 154, 178, 0.3);
+
+	/* Backgrounds */
+	--gem-bg: #250d2e;
+	--gem-surface: #4e1b58;
+	--gem-surface-2: #673573;
+	--gem-surface-3: #8c6b87;
+
+	/* Text */
+	--gem-text: #f0eaf5;
+	--gem-text-muted: #c4a8d0;
+	--gem-text-dim: #7a5a8a;
+
+	/* Borders */
+	--gem-border: rgba(2, 154, 178, 0.35);
+	--gem-border-subtle: rgba(255, 255, 255, 0.07);
+
+	/* Theme-variant tokens */
+	--gem-glass-bg: rgba(37, 13, 46, 0.92);
+	--gem-button-fg: #ffffff;
+
+	/* shadcn compat */
+	--background: var(--gem-bg);
+	--foreground: var(--gem-text);
+	--card: var(--gem-surface);
+	--card-foreground: var(--gem-text);
+	--popover: var(--gem-surface-2);
+	--popover-foreground: var(--gem-text);
+	--primary: var(--gem-copper);
+	--primary-foreground: var(--gem-button-fg);
+	--secondary: var(--gem-surface-2);
+	--secondary-foreground: var(--gem-text);
+	--muted: var(--gem-surface);
+	--muted-foreground: var(--gem-text-muted);
+	--accent: var(--gem-surface-2);
+	--accent-foreground: var(--gem-text);
+	--border: var(--gem-border);
+	--input: var(--gem-border-subtle);
+	--ring: var(--gem-copper);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Tailwind 4 — @theme inline (CSS-variable-backed utilities)
+   ══════════════════════════════════════════════════════════════════ */
+@theme inline {
+	--font-sans: 'DM Sans', sans-serif;
+	--font-display: 'Barlow Condensed', sans-serif;
+
+	/* Brand colours → text-copper, bg-copper, border-copper … */
+	--color-copper: var(--gem-copper);
+	--color-copper-light: var(--gem-copper-light);
+	--color-copper-dark: var(--gem-copper-dark);
+
+	/* Surface colours */
+	--color-gem-bg: var(--gem-bg);
+	--color-gem-surface: var(--gem-surface);
+	--color-gem-surface-2: var(--gem-surface-2);
+	--color-gem-surface-3: var(--gem-surface-3);
+
+	/* Text colours */
+	--color-gem-text: var(--gem-text);
+	--color-gem-muted: var(--gem-text-muted);
+	--color-gem-dim: var(--gem-text-dim);
+
+	/* Border colours */
+	--color-gem-border: var(--gem-border);
+	--color-gem-border-subtle: var(--gem-border-subtle);
+
+	/* shadcn compat */
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-border: var(--border);
+	--color-ring: var(--ring);
+	--color-destructive: var(--destructive);
+
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 2);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Base
+   ══════════════════════════════════════════════════════════════════ */
+@layer base {
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	html {
+		background-color: var(--gem-bg);
+		color: var(--gem-text);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		scroll-behavior: smooth;
+	}
+
+	body {
+		min-height: 100vh;
+		background-color: var(--gem-bg);
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5 {
+		font-family: var(--font-display);
+		letter-spacing: 0.03em;
+		line-height: 1.1;
+		color: var(--gem-text);
+	}
+
+	*:focus-visible {
+		outline: 2px solid var(--gem-copper);
+		outline-offset: 3px;
+	}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Utilities
+   ══════════════════════════════════════════════════════════════════ */
+@layer utilities {
+	/* ── Typography ── */
+	.font-display {
+		font-family: var(--font-display);
+	}
+
+	.text-gradient-copper {
+		background: linear-gradient(
+			135deg,
+			var(--gem-copper-light) 0%,
+			var(--gem-copper) 55%,
+			var(--gem-copper-dark) 100%
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	/* ── Dividers ── */
+	.copper-divider {
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			var(--gem-copper) 40%,
+			var(--gem-copper) 60%,
+			transparent 100%
+		);
+		opacity: 0.35;
+	}
+
+	/* ── Section label ── */
+	.section-label {
+		font-family: var(--font-display);
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.22em;
+		text-transform: uppercase;
+		color: var(--gem-copper);
+	}
+
+	/* ── Glass navbar ── */
+	.nav-glass {
+		background: var(--gem-glass-bg);
+		backdrop-filter: blur(18px) saturate(1.6);
+		-webkit-backdrop-filter: blur(18px) saturate(1.6);
+		border-bottom: 1px solid var(--gem-border-subtle);
+	}
+
+	/* ── Buttons ── */
+	.btn-copper {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-family: var(--font-display);
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		font-size: 0.8125rem;
+		background: linear-gradient(135deg, var(--gem-copper) 0%, var(--gem-copper-dark) 100%);
+		color: var(--gem-button-fg);
+		border: 1px solid var(--gem-copper);
+		box-shadow: 0 2px 20px var(--gem-copper-glow);
+		transition:
+			background 0.2s ease,
+			box-shadow 0.2s ease,
+			transform 0.2s ease;
+		cursor: pointer;
+		text-decoration: none;
+	}
+	.btn-copper:hover {
+		background: linear-gradient(135deg, var(--gem-copper-light) 0%, var(--gem-copper) 100%);
+		box-shadow: 0 4px 36px var(--gem-copper-glow);
+		transform: translateY(-1px);
+	}
+	.btn-copper:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	.btn-ghost {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-family: var(--font-display);
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		font-size: 0.8125rem;
+		background: transparent;
+		color: var(--gem-copper-light);
+		border: 1px solid var(--gem-border);
+		transition:
+			background 0.2s ease,
+			border-color 0.2s ease,
+			box-shadow 0.2s ease,
+			transform 0.2s ease;
+		cursor: pointer;
+		text-decoration: none;
+	}
+	.btn-ghost:hover {
+		background: var(--gem-copper-glow);
+		border-color: var(--gem-copper);
+		box-shadow: 0 2px 20px var(--gem-copper-glow);
+		transform: translateY(-1px);
+	}
+
+	/* ── Cards ── */
+	.card-gem {
+		background: var(--gem-surface);
+		border: 1px solid var(--gem-border-subtle);
+		transition:
+			border-color 0.3s ease,
+			box-shadow 0.3s ease,
+			transform 0.3s ease;
+	}
+	.card-gem:hover {
+		border-color: var(--gem-border);
+		box-shadow:
+			0 8px 40px rgba(0, 0, 0, 0.28),
+			0 0 28px var(--gem-copper-glow);
+		transform: translateY(-3px);
+	}
+
+	/* ── Form fields ── */
+	.field-gem {
+		background: var(--gem-surface-2);
+		border: 1px solid var(--gem-border-subtle);
+		color: var(--gem-text);
+		transition:
+			border-color 0.2s ease,
+			box-shadow 0.2s ease;
+		outline: none;
+		width: 100%;
+		appearance: none;
+	}
+	.field-gem::placeholder {
+		color: var(--gem-text-dim);
+	}
+	.field-gem:focus {
+		border-color: var(--gem-copper);
+		box-shadow: 0 0 0 3px var(--gem-copper-glow);
+	}
+
+	/* ── Scroll reveal ── */
+	.reveal {
+		opacity: 0;
+		transform: translateY(28px);
+		transition:
+			opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+			transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	.reveal.visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

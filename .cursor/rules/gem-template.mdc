@@ -1,0 +1,197 @@
+---
+description: GEM Template — coding standards and agent workflow rules for all Cursor agents
+alwaysApply: true
+---
+
+# GEM Template — Agent Ruleset
+
+## Project snapshot
+- **Stack**: SvelteKit 5 (Runes API), Tailwind CSS 4, shadcn-svelte, TypeScript strict
+- **Adapter**: `adapter-node` → standalone Node.js server, deployed via Coolify on Hetzner VPS
+- **Purpose**: Reusable trade-business landing-page template. One `config.ts` swap = new client.
+
+---
+
+## The cardinal rule — `src/lib/config.ts`
+
+`config.ts` is the **single client-customisation surface**. Every piece of client identity lives
+there: brand, contact, address, services, opening hours, social proof, partner names, problem
+types, meta, OG.
+
+- **Never hardcode** client-specific text, numbers, or names anywhere else in the codebase.
+- **Never duplicate** config values — always import from `$lib/config`.
+- When a component needs a new data field, add it to `config.ts` first, then consume it.
+
+---
+
+## Source of truth for UI copy — `src/lib/i18n.ts`
+
+All user-facing strings (labels, headings, CTAs, aria-labels) live in `T.de` and `T.en` inside
+`i18n.ts`. Components receive the correct locale object via `lang.svelte.ts` and read `t.section.key`.
+
+- **Never hardcode** display strings inside `.svelte` files.
+- When adding new copy, add both `de` and `en` entries in `i18n.ts` **before** touching the component.
+
+---
+
+## Directory contract
+
+```
+src/
+├── lib/
+│   ├── actions/        # Svelte actions (DOM behaviour helpers, e.g. reveal.ts)
+│   ├── components/     # Chrome/shell: Navbar, Footer, LangSwitch, ThemeSwitch
+│   │                   # Always rendered regardless of page — never section-specific
+│   ├── ui/             # Page section components: Hero, ServiceCards, WhyUs, etc.
+│   │                   # One file per content block, named after the section
+│   ├── config.ts       # ← CLIENT IDENTITY — swap this per deployment
+│   ├── i18n.ts         # ← ALL UI copy in de + en
+│   ├── lang.svelte.ts  # Rune-based active language state
+│   ├── theme.svelte.ts # Rune-based active theme state
+│   ├── utils.ts        # Pure utility functions (cn helper, etc.)
+│   └── index.ts        # Public re-exports for $lib
+└── routes/
+    ├── +layout.svelte  # JSON-LD, meta tags, Navbar/Footer shell
+    ├── +page.svelte    # Home page — composes ui/ sections
+    ├── +page.server.ts # Form action (WhatsApp redirect + optional Resend)
+    ├── datenschutz/    # Privacy policy
+    └── impressum/      # Legal notice
+```
+
+Placement rules:
+- `components/` = always-on chrome. `ui/` = replaceable page sections.
+- New reusable layout elements → `components/`. New page sections → `ui/`.
+- New shared logic/helpers → `src/lib/` root (e.g. `animations.ts`), not scattered in subdirs.
+- New routes with backend logic → `routes/[slug]/+page.server.ts` alongside the page file.
+- **Do not create** a `types/`, `stores/`, or `helpers/` directory for a handful of files —
+  keep types co-located with the file that owns them.
+
+---
+
+## Svelte 5 — Runes only
+
+This project targets Svelte 5. The legacy Options API is **forbidden**.
+
+| Forbidden (legacy) | Use instead (Svelte 5) |
+|---|---|
+| `export let prop` | `let { prop } = $props()` |
+| `$: derived` | `$derived(expr)` |
+| `writable()` / `readable()` stores | Rune-based state in `*.svelte.ts` files |
+| `onMount` for reactive side-effects | `$effect()` |
+| `<svelte:component this={C}>` | Direct component variable in markup |
+| `on:click={handler}` | `onclick={handler}` |
+
+Rune-based state modules live in `src/lib/` as `*.svelte.ts` files (e.g. `theme.svelte.ts`).
+
+---
+
+## TypeScript
+
+- `strict: true` is enforced — no implicit `any`, no `!` non-null assertions without comment.
+- Types shared across multiple files are defined in the file that semantically owns them
+  (e.g. `Service`, `Stat`, `USP` live in `config.ts`). Do not move them to a separate `types/` file.
+- Use `as const` on config objects to get literal types for free.
+- All component props must be typed via `$props()` destructuring with explicit types.
+
+---
+
+## Styling
+
+- **Tailwind CSS 4** utilities everywhere. No custom CSS except in `src/app.css`.
+- `app.css` owns: CSS custom properties (theme tokens), font imports, base resets only.
+- Class composition uses `cn()` from `$lib/utils` (clsx + tailwind-merge).
+- Responsive prefix order: base → `sm:` → `md:` → `lg:` → `xl:`.
+- Do not use inline `style=` attributes — use Tailwind utilities or CSS custom properties.
+- Do not use `@apply` in CSS — write utilities directly in `.svelte` files.
+
+---
+
+## Formatting (matches `.prettierrc`)
+
+- **Tabs** for indentation — never spaces.
+- **Single quotes** for strings.
+- **No trailing commas**.
+- **100 character** print width.
+- Run `npm run format` before every commit. CI will reject unformatted code.
+
+---
+
+## Imports
+
+- Always use the `$lib/` path alias for `src/lib` imports — never relative `../../`.
+- Import order: Svelte/SvelteKit internals → `$lib/` → sibling `.svelte` files.
+- Do not create barrel re-exports inside `components/` or `ui/` subdirectories.
+  Import each component directly: `import Hero from '$lib/ui/Hero.svelte'`.
+
+---
+
+## Agent roles and ownership
+
+### Frontend Developer
+- **Owns**: `src/lib/components/`, `src/lib/ui/`, `src/app.css`, `src/lib/i18n.ts`
+- **May read, not modify**: `config.ts` — propose data shape changes to the Orchestrator
+- **Branch prefix**: `feat/` or `fix/`
+
+### DevOps Automator
+- **Owns**: `svelte.config.js`, `vite.config.ts`, `package.json`, `.env.example`, `DEPLOY.md`,
+  CI/CD config files
+- **Does not touch** `src/` except to resolve build or type errors
+- **Branch prefix**: `chore/` or `infra/`
+
+### Git Workflow Master
+- Enforces the branching model below
+- Reviews PRs before merge to `dev` or `main`
+- **Branch prefix**: `release/` or `hotfix/`
+
+### Agents Orchestrator (Claude Code)
+- Coordinates cross-cutting changes (new section = `config.ts` + `i18n.ts` + `ui/` + route)
+- Has final say on directory structure and naming conventions
+- **Branch prefix**: `scaffold/` or `refactor/`
+
+---
+
+## Branching model
+
+```
+main          ← production-ready only; tagged releases
+  └── dev     ← integration; all feature branches merge here first
+        ├── feat/lang-switcher
+        ├── fix/form-validation
+        ├── chore/upgrade-tailwind
+        └── client/muster-sanitaer   ← per-client forks of the template
+```
+
+- `main` is protected — no direct pushes, PR required, must pass CI.
+- `dev` is the integration target — agents open PRs to `dev`, not `main`.
+- `main` ← `dev` merges are done by the Git Workflow Master after QA.
+- Client deployments live on `client/<slug>` branches, rebased on `main` at release time.
+
+### Commit message format (Conventional Commits)
+
+```
+<type>(<scope>): <short description>
+
+# Types: feat | fix | chore | refactor | style | docs | test
+# Scope: optional, matches the primary file/area changed
+#
+# Examples:
+# feat(ui): add TestimonialsSection component
+# fix(form): correct WhatsApp number encoding
+# chore(deps): upgrade SvelteKit to 2.58
+# refactor(config): extract OPENING_HOURS to config.ts
+```
+
+- Subject line ≤ 72 characters, imperative mood, no period.
+- Body (optional) explains *why*, not *what*.
+
+---
+
+## Hard limits — things agents must never do
+
+- Do not switch the adapter away from `adapter-node` (no `adapter-vercel`, `adapter-auto`, etc.).
+- Do not add `vercel.json` or `vercel.ts` — this project deploys to Hetzner/Coolify.
+- Do not install an i18n library (`svelte-i18n`, `paraglide`) — `i18n.ts` is intentionally minimal.
+- Do not add state management libraries (Pinia, Zustand, Jotai) — use Svelte 5 runes.
+- Do not commit `.env.local` or any real credentials.
+- Do not introduce `any` types without a `// eslint-disable` comment and justification.
+- Do not push directly to `main`.

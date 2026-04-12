@@ -1,0 +1,12 @@
+pre-commit:
+  commands:
+    format:
+      run: npm run format && git add -A
+    typecheck:
+      run: npm run check
+      fail_text: 'Type errors found. Fix before committing.'
+
+commit-msg:
+  scripts:
+    'validate-msg.sh':
+      runner: bash
