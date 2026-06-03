@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * HurrCut tokens — light + dark. Channels are space-separated RGB so Tailwind's
+ * `<alpha-value>` works (e.g. `bg-surface/70`). This is the single source of
+ * truth the old app lacked (extraction obs. #3). Light mode is FULLY defined
+ * here — do not hardcode hex in components (old app's light mode was partial).
+ */
+:root {
+  /* neutral base — light */
+  --surface-0: 250 250 250;   /* zinc-50  */
+  --surface-1: 255 255 255;
+  --surface-2: 244 244 245;   /* zinc-100 */
+  --fg: 24 24 27;             /* zinc-900 */
+  --fg-dim: 113 113 122;      /* zinc-500 */
+  --fg-faint: 161 161 170;    /* zinc-400 */
+  --border: 228 228 231;      /* zinc-200 */
+  --border-strong: 212 212 216;
+
+  /* single accent — distinct from signal.video (#58d3ff) */
+  --accent: 37 99 235;        /* blue-600 */
+  --accent-hover: 59 130 246; /* blue-500 */
+  --accent-fg: 255 255 255;
+}
+
+.dark {
+  /* neutral base — dark (deliberate near-black, not pure #000) */
+  --surface-0: 9 9 11;        /* zinc-950 */
+  --surface-1: 24 24 27;      /* zinc-900 */
+  --surface-2: 39 39 42;      /* zinc-800 */
+  --fg: 244 244 245;          /* zinc-100 */
+  --fg-dim: 161 161 170;      /* zinc-400 */
+  --fg-faint: 113 113 122;    /* zinc-500 */
+  --border: 39 39 42;         /* zinc-800 */
+  --border-strong: 63 63 70;  /* zinc-700 */
+
+  --accent: 37 99 235;
+  --accent-hover: 59 130 246;
+  --accent-fg: 255 255 255;
+}
+
+@layer base {
+  html { @apply bg-surface text-fg; }
+  body { @apply antialiased; font-family: theme("fontFamily.sans"); }
+
+  /* Unified focus style across the whole app (old app had several). */
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-accent;
+  }
+}
+
+/*
+ * Respect reduced motion EVERYWHERE (old app missed CommandBar/Timeline/Inspector).
+ * This is a global backstop; still prefer minimal motion by design.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

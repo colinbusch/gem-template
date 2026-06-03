@@ -1,13 +1,11 @@
-import tailwindcss from '@tailwindcss/vite';
-import { enhancedImages } from '@sveltejs/enhanced-img';
-import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import path from 'node:path'
 
 export default defineConfig({
-	plugins: [
-		// MUST be before sveltekit() — auto-converts assets to WebP/AVIF at build time
-		enhancedImages(),
-		tailwindcss(),
-		sveltekit()
-	]
-});
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
+})
