@@ -41,7 +41,7 @@ const MATRIX: MatrixRow[] = [
   { phase: 6, feature: 'Media / packs / AI',      status: 'done',    risk: 'medium',   notes: 'Thumbnails, lib/ai.ts + lib/catalog.ts service boundaries; stubs' },
   { phase: 7, feature: 'Secondary routes',        status: 'done',    risk: 'low',      notes: '/, /login, /settings, /about — auth-mock disclosure present' },
   { phase: 8, feature: '/matrix auth guard',      status: 'done',    risk: 'low',      notes: 'This page; localStorage mock token; AuthGate component; redirect flow' },
-  { phase: 9, feature: 'Engine integration',      status: 'planned', risk: 'critical', notes: 'Canvas 2D + 3 Web Workers + MediaRecorder WebM + OPFS/FSA persistence' },
+  { phase: 9, feature: 'Engine integration',      status: 'done',    risk: 'medium',   notes: 'Canvas 2D Renderer, MediaRecorder WebM export + attributions.md, worker scaffolds, real FSA sync' },
   { phase: 10, feature: 'Responsive / mobile',    status: 'planned', risk: 'high',     notes: 'Sub-1080px behavior undefined; MenuBar hides controls <820px' },
   { phase: 11, feature: 'A11y + QA',              status: 'planned', risk: 'medium',   notes: 'Unified focus styles; Playwright primary flow; Vitest coverage' },
 ]
