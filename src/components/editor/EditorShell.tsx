@@ -15,17 +15,44 @@ import { AlertTriangle } from 'lucide-react'
 import type { CommandItem } from '@/components/ui'
 
 function ExportFeedback() {
-  const exportState = useProjectStore((s) => s.exportState)
-  const assets = useProjectStore((s) => s.assets)
-  const clips = useProjectStore((s) => s.clips)
+  const exportState    = useProjectStore((s) => s.exportState)
+  const exportProgress = useProjectStore((s) => s.exportProgress)
+  const assets         = useProjectStore((s) => s.assets)
+  const clips          = useProjectStore((s) => s.clips)
   const markAssetMissing = useProjectStore((s) => s.markAssetMissing)
-  const removeClip = useProjectStore((s) => s.removeClip)
+  const removeClip     = useProjectStore((s) => s.removeClip)
   const setExportState = useProjectStore((s) => s.setExportState)
 
   const missingClips = clips.filter((c) => assets.find((a) => a.id === c.assetId && a.missing))
 
   if (exportState === 'exporting') {
-    return <div className="h-0.5 bg-surface-2"><div className="h-full bg-accent transition-all duration-100" style={{ width: '60%' }} aria-hidden="true" /></div>
+    return (
+      <div className="h-1 bg-surface-2" role="progressbar" aria-label="Export progress" aria-valuenow={exportProgress} aria-valuemin={0} aria-valuemax={100}>
+        <div
+          className="h-full bg-accent transition-[width] duration-100 motion-reduce:transition-none"
+          style={{ width: `${exportProgress}%` }}
+        />
+      </div>
+    )
+  }
+
+  if (exportState === 'done') {
+    return (
+      <div
+        role="status"
+        className="px-3 py-1.5 flex items-center justify-between text-xs border-t"
+        style={{ background: 'rgb(134 232 159 / 0.08)', color: '#86e89f', borderColor: 'rgb(134 232 159 / 0.3)' }}
+      >
+        <span>Export complete — WebM ready to download.</span>
+        <button
+          onClick={() => setExportState('idle')}
+          className="h-6 px-2 rounded text-xs border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          style={{ borderColor: 'rgb(134 232 159 / 0.4)', color: '#86e89f' }}
+        >
+          Dismiss
+        </button>
+      </div>
+    )
   }
 
   if (exportState === 'error' && missingClips.length > 0) {

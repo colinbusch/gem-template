@@ -54,6 +54,7 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
   const _historyIdx = useProjectStore((s) => s._historyIdx)
   const setExporting = useProjectStore((s) => s.setExporting)
   const setExportState = useProjectStore((s) => s.setExportState)
+  const setExportProgress = useProjectStore((s) => s.setExportProgress)
 
   const selected = clips.find((c) => c.id === selectedClipId) ?? null
   const missingClips = clips.filter((c) => assets.find((a) => a.id === c.assetId && a.missing))
@@ -124,10 +125,12 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
     }
     setExporting(true)
     setExportState('exporting')
+    setExportProgress(0)
     // TODO: Phase 9 — real MediaRecorder / FFmpeg WASM export
     let progress = 0
     const iv = setInterval(() => {
       progress = Math.min(100, progress + 7)
+      setExportProgress(progress)
       if (progress >= 100) {
         clearInterval(iv)
         setExporting(false)
@@ -175,7 +178,7 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
         aria-label={isExporting ? `Exporting…` : 'Export WebM'}
       >
         {isExporting
-          ? <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+          ? <Loader2 size={15} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
           : <Download size={15} aria-hidden="true" />}
         {isExporting ? 'Exporting…' : 'Export WebM'}
       </button>

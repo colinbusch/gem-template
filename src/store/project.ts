@@ -29,6 +29,7 @@ const INITIAL_STATE: ProjectState = {
   safeGuides: false,
   isPlaying: false,
   isExporting: false,
+  exportProgress: 0,
   tier: 'free',
   workers: [
     { kind: 'effects', status: 'idle' },
@@ -77,6 +78,7 @@ interface ProjectStore extends ProjectState {
   // Export
   setExporting: (exporting: boolean) => void
   setExportState: (state: ProjectState['exportState']) => void
+  setExportProgress: (pct: number) => void
 
   // AI
   setAiJob: (job: AiJobKind | null) => void
@@ -231,6 +233,7 @@ export const useProjectStore = create<ProjectStore>()(
     setSafeGuides: (safeGuides) => set({ safeGuides }),
     setExporting: (isExporting) => set({ isExporting }),
     setExportState: (exportState) => set({ exportState }),
+    setExportProgress: (exportProgress) => set({ exportProgress }),
     setAiJob: (aiJob) => set({ aiJob }),
     setAiRunning: (aiRunning) => set({ aiRunning }),
     setAiResult: (aiResult) => set({ aiResult }),

@@ -84,7 +84,7 @@ export function AiAssistant() {
           className="h-8 px-3 rounded border border-border bg-surface text-sm text-fg-dim hover:bg-surface-2 hover:text-fg flex items-center gap-1.5 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {aiRunning
-            ? <><Loader2 size={13} className="animate-spin" aria-hidden="true" /> Running…</>
+            ? <><Loader2 size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> Running…</>
             : <><Sparkles size={13} aria-hidden="true" /> Run</>}
         </button>
       </div>

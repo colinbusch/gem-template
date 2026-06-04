@@ -164,6 +164,7 @@ export interface ProjectState {
   safeGuides: boolean
   isPlaying: boolean
   isExporting: boolean
+  exportProgress: number  // 0-100; updated during export for determinate progress bar
   tier: Tier
   workers: WorkerState[]
   exportState: ExportStatus
