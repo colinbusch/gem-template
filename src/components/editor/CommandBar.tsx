@@ -1,4 +1,4 @@
-import { Upload, Type, Square, Zap, PanelBottom, Undo2, Redo2, Scissors, Copy, Trash2, Download, Loader2 } from 'lucide-react'
+import { Upload, Type, Square, Zap, PanelBottom, Undo2, Redo2, Scissors, GitMerge, Copy, Trash2, Download, Loader2 } from 'lucide-react'
 import { useProjectStore } from '@/store/project'
 import { uid, clipDur } from '@/lib/utils'
 import type { TimelineClip } from '@/store/types'
@@ -46,6 +46,7 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
   const addClip = useProjectStore((s) => s.addClip)
   const removeClip = useProjectStore((s) => s.removeClip)
   const selectClip = useProjectStore((s) => s.selectClip)
+  const mergeClip = useProjectStore((s) => s.mergeClip)
   const undo = useProjectStore((s) => s.undo)
   const redo = useProjectStore((s) => s.redo)
   const _pushHistory = useProjectStore((s) => s._pushHistory)
@@ -56,6 +57,12 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
 
   const selected = clips.find((c) => c.id === selectedClipId) ?? null
   const missingClips = clips.filter((c) => assets.find((a) => a.id === c.assetId && a.missing))
+
+  const canMerge = (() => {
+    if (!selected) return false
+    const clipEnd = selected.start + clipDur(selected)
+    return clips.some((c) => c.trackId === selected.trackId && c.id !== selected.id && Math.abs(c.start - clipEnd) < 0.05)
+  })()
 
   const handleAddClip = (kind: TimelineClip['kind'], name: string) => {
     _pushHistory()
@@ -152,6 +159,7 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
         <BarBtn icon={Undo2} onClick={undo} disabled={!canUndo}>Undo</BarBtn>
         <BarBtn icon={Redo2} onClick={redo} disabled={!canRedo}>Redo</BarBtn>
         <BarBtn icon={Scissors} onClick={handleSplit} disabled={!selected}>Split</BarBtn>
+        <BarBtn icon={GitMerge} onClick={() => selectedClipId && mergeClip(selectedClipId)} disabled={!canMerge}>Merge</BarBtn>
         <BarBtn icon={Copy} onClick={handleDuplicate} disabled={!selected}>Duplicate</BarBtn>
         {/* Delete is destructive — visually quieted, undo available via history */}
         <BarBtn icon={Trash2} onClick={handleDelete} disabled={!selected}>Delete</BarBtn>

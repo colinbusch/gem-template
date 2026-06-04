@@ -89,6 +89,13 @@ interface ProjectStore extends ProjectState {
   _history: HistoryEntry[]
   _historyIdx: number
   _pushHistory: () => void
+
+  // Live update during pointer drag — no history push, no debounced save.
+  // Timeline calls _pushHistory() once on pointerdown, then _setClipLive() each pointermove.
+  _setClipLive: (id: string, patch: Partial<TimelineClip>) => void
+
+  // Merge selected clip with adjacent clip on same track
+  mergeClip: (id: string) => void
 }
 
 let _debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -184,6 +191,30 @@ export const useProjectStore = create<ProjectStore>()(
       set((s) => ({
         assets: s.assets.map((a) => (a.id === id ? { ...a, missing } : a)),
       }))
+    },
+
+    _setClipLive: (id, patch) => {
+      set((s) => ({ clips: s.clips.map((c) => (c.id === id ? { ...c, ...patch } : c)) }))
+    },
+
+    mergeClip: (id) => {
+      const { clips } = get()
+      const clip = clips.find((c) => c.id === id)
+      if (!clip) return
+      const clipEnd = clip.start + (clip.out - clip.in)
+      const THRESHOLD = 0.05 // 50ms — snap tolerance for "adjacent"
+      const next = clips
+        .filter((c) => c.trackId === clip.trackId && c.id !== id)
+        .find((c) => Math.abs(c.start - clipEnd) < THRESHOLD)
+      if (!next) return
+      get()._pushHistory()
+      const mergedOut = clip.out + (next.out - next.in)
+      set((s) => ({
+        clips: s.clips
+          .filter((c) => c.id !== next.id)
+          .map((c) => (c.id === id ? { ...c, out: mergedOut } : c)),
+      }))
+      debouncedSave(get())
     },
 
     setPlayhead: (time) => set({ playhead: time }),
