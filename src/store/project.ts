@@ -62,6 +62,7 @@ interface ProjectStore extends ProjectState {
 
   // Asset actions
   addAsset: (asset: MediaAsset) => void
+  updateAsset: (id: string, patch: Partial<MediaAsset>) => void
   removeAsset: (id: string) => void
   markAssetMissing: (id: string, missing: boolean) => void
 
@@ -183,6 +184,11 @@ export const useProjectStore = create<ProjectStore>()(
     addAsset: (asset) => {
       set((s) => ({ assets: [...s.assets, asset] }))
       debouncedSave(get())
+    },
+
+    updateAsset: (id, patch) => {
+      set((s) => ({ assets: s.assets.map((a) => (a.id === id ? { ...a, ...patch } : a)) }))
+      // Don't debouncedSave — thumbnail/url patches are transient and must not be persisted
     },
 
     removeAsset: (id) => {

@@ -45,7 +45,8 @@ export interface MediaAsset {
   duration: number
   width?: number
   height?: number
-  url?: string
+  url?: string          // object URL — transient, stripped before OPFS save
+  thumbnail?: string   // JPEG data URL — transient, stripped before OPFS save
   sourceName?: string
   missing?: boolean
 }

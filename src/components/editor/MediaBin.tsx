@@ -1,8 +1,9 @@
 import { useCallback, useRef, useState } from 'react'
-import { Upload, Film, Music, Image as ImageIcon, AlertTriangle, Search } from 'lucide-react'
+import { Upload, Film, Music, Image as ImageIcon, AlertTriangle, Search, Loader2 } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 import { useProjectStore } from '@/store/project'
-import { KIND_COLOR, fmtTime } from '@/lib/utils'
+import { KIND_COLOR, fmtTime, uid } from '@/lib/utils'
+import { extractVideoMeta, extractAudioMeta, extractImageMeta } from '@/lib/media'
 import type { MediaAsset } from '@/store/types'
 
 const TYPE_ICON: Record<string, typeof Film> = {
@@ -22,31 +23,35 @@ function AssetRow({ asset }: { asset: MediaAsset }) {
       role="listitem"
       aria-label={asset.name}
     >
-      {/* Thumbnail placeholder */}
+      {/* Thumbnail */}
       <div
-        className="h-10 w-16 rounded shrink-0 grid place-items-center"
-        style={
-          asset.missing
-            ? { border: '1px dashed #f0606b', color: '#f0606b' }
-            : { background: 'rgb(var(--surface-2))', color }
-        }
+        className="h-10 w-16 rounded shrink-0 overflow-hidden"
         aria-hidden="true"
       >
-        {asset.missing ? <AlertTriangle size={15} /> : <Icon size={16} />}
+        {asset.missing ? (
+          <div className="h-full w-full grid place-items-center" style={{ border: '1px dashed #f0606b', color: '#f0606b' }}>
+            <AlertTriangle size={15} />
+          </div>
+        ) : asset.thumbnail ? (
+          <img src={asset.thumbnail} alt="" className="h-full w-full object-cover" />
+        ) : asset.type === 'image' && asset.url ? (
+          <img src={asset.url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full grid place-items-center" style={{ background: 'rgb(var(--surface-2))', color }}>
+            <Icon size={16} />
+          </div>
+        )}
       </div>
 
       {/* Name + meta */}
       <div className="min-w-0 flex-1">
-        <p
-          className="truncate text-sm"
-          style={asset.missing ? { color: '#f0606b' } : undefined}
-        >
+        <p className="truncate text-sm" style={asset.missing ? { color: '#f0606b' } : undefined}>
           {asset.name}
         </p>
         <p className="text-xs text-fg-faint">
           {asset.missing
             ? 'missing — relink'
-            : `${asset.type} · ${fmtTime(asset.duration)}`}
+            : `${asset.type}${asset.duration ? ` · ${fmtTime(asset.duration)}` : ''}${asset.width ? ` · ${asset.width}×${asset.height}` : ''}`}
         </p>
       </div>
     </div>
@@ -54,41 +59,63 @@ function AssetRow({ asset }: { asset: MediaAsset }) {
 }
 
 export function MediaBin() {
-  const assets = useProjectStore((s) => s.assets)
-  const addAsset = useProjectStore((s) => s.addAsset)
-  const [query, setQuery] = useState('')
+  const assets       = useProjectStore((s) => s.assets)
+  const addAsset     = useProjectStore((s) => s.addAsset)
+  const updateAsset  = useProjectStore((s) => s.updateAsset)
+  const [query, setQuery]           = useState('')
   const [draggingOver, setDraggingOver] = useState(false)
+  const [importing, setImporting]   = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const filtered = query
     ? assets.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
     : assets
 
-  const handleImport = useCallback(() => {
-    fileInputRef.current?.click()
-  }, [])
+  const handleImport = useCallback(() => { fileInputRef.current?.click() }, [])
 
   const handleFiles = useCallback(
-    (files: FileList | null) => {
-      if (!files) return
-      Array.from(files).forEach((file) => {
-        const type = file.type.startsWith('video/')
-          ? 'video'
-          : file.type.startsWith('audio/')
-          ? 'audio'
-          : 'image'
-        addAsset({
-          id: Math.random().toString(36).slice(2),
-          name: file.name,
-          type,
-          mime: file.type,
-          size: file.size,
-          duration: 0, // TODO: Phase 6 — decode actual duration
-          url: URL.createObjectURL(file),
-        })
-      })
+    async (files: FileList | null) => {
+      if (!files || files.length === 0) return
+      setImporting(true)
+      try {
+        for (const file of Array.from(files)) {
+          const type: MediaAsset['type'] = file.type.startsWith('video/')
+            ? 'video'
+            : file.type.startsWith('audio/')
+            ? 'audio'
+            : 'image'
+
+          // Add placeholder immediately so the asset appears in the list
+          const assetId = uid()
+          addAsset({ id: assetId, name: file.name, type, mime: file.type, size: file.size, duration: 0 })
+
+          // Extract metadata and thumbnail asynchronously
+          if (type === 'video') {
+            const meta = await extractVideoMeta(file)
+            updateAsset(assetId, {
+              url: meta.url,
+              duration: meta.duration,
+              thumbnail: meta.thumbnail || undefined,
+              width: meta.width || undefined,
+              height: meta.height || undefined,
+            })
+          } else if (type === 'audio') {
+            const meta = await extractAudioMeta(file)
+            updateAsset(assetId, { url: meta.url, duration: meta.duration })
+          } else {
+            const meta = await extractImageMeta(file)
+            updateAsset(assetId, {
+              url: meta.url,
+              width: meta.width || undefined,
+              height: meta.height || undefined,
+            })
+          }
+        }
+      } finally {
+        setImporting(false)
+      }
     },
-    [addAsset],
+    [addAsset, updateAsset],
   )
 
   return (
@@ -101,10 +128,13 @@ export function MediaBin() {
         <span className="text-sm font-medium text-fg">Media</span>
         <button
           onClick={handleImport}
-          className="h-7 px-2 rounded flex items-center gap-1 text-xs text-fg-dim border border-border hover:bg-surface-2 hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          disabled={importing}
+          className="h-7 px-2 rounded flex items-center gap-1 text-xs text-fg-dim border border-border hover:bg-surface-2 hover:text-fg disabled:opacity-60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          <Upload size={13} aria-hidden="true" />
-          Import
+          {importing
+            ? <Loader2 size={13} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            : <Upload size={13} aria-hidden="true" />}
+          {importing ? 'Importing…' : 'Import'}
         </button>
         <input
           ref={fileInputRef}
@@ -112,7 +142,7 @@ export function MediaBin() {
           multiple
           accept="video/*,audio/*,image/*"
           className="sr-only"
-          onChange={(e) => handleFiles(e.target.files)}
+          onChange={(e) => { handleFiles(e.target.files); e.target.value = '' }}
           aria-label="Import media files"
         />
       </div>
@@ -153,9 +183,7 @@ export function MediaBin() {
           <EmptyState icon={<Search size={20} />} title="No results" description={`No media matching "${query}"`} />
         ) : (
           <div className="flex flex-col gap-0.5">
-            {filtered.map((a) => (
-              <AssetRow key={a.id} asset={a} />
-            ))}
+            {filtered.map((a) => <AssetRow key={a.id} asset={a} />)}
           </div>
         )}
       </div>
@@ -168,11 +196,7 @@ export function MediaBin() {
         ].join(' ')}
         onDragOver={(e) => { e.preventDefault(); setDraggingOver(true) }}
         onDragLeave={() => setDraggingOver(false)}
-        onDrop={(e) => {
-          e.preventDefault()
-          setDraggingOver(false)
-          handleFiles(e.dataTransfer.files)
-        }}
+        onDrop={(e) => { e.preventDefault(); setDraggingOver(false); handleFiles(e.dataTransfer.files) }}
         aria-label="Drop files here to import"
       >
         Drag files here to import

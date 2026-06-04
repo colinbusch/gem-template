@@ -2,26 +2,12 @@ import { useEffect, useState } from 'react'
 import { PanelBottom, AlertTriangle, RefreshCw } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 import { useProjectStore } from '@/store/project'
+import { fetchPacks } from '@/lib/catalog'
 import { uid } from '@/lib/utils'
 import type { TimelineClip } from '@/store/types'
+import type { CatalogPack, PackKind } from '@/lib/catalog'
 
-type PackKind = 'text' | 'shape' | 'overlay'
 type CatalogStatus = 'loading' | 'loaded' | 'error'
-
-interface Pack {
-  id: string
-  label: string
-  kind: PackKind
-}
-
-// SAMPLE packs — clearly marked; Phase 6 loads from /api/catalog/packs
-const SAMPLE_PACKS: Pack[] = [
-  { id: 'p1', label: 'Clean titles',       kind: 'text' },
-  { id: 'p2', label: 'Subscribe hook',     kind: 'shape' },
-  { id: 'p3', label: 'Lower third',        kind: 'shape' },
-  { id: 'p4', label: 'Minimal overlay',    kind: 'overlay' },
-  { id: 'p5', label: 'Caption band',       kind: 'text' },
-]
 
 const KIND_FILTERS: { value: PackKind | null; label: string }[] = [
   { value: null,      label: 'All' },
@@ -33,51 +19,57 @@ const KIND_FILTERS: { value: PackKind | null; label: string }[] = [
 const pulse = 'bg-surface-2 animate-pulse motion-reduce:animate-none'
 
 export function CreatorPacks() {
-  const playhead   = useProjectStore((s) => s.playhead)
-  const tracks     = useProjectStore((s) => s.tracks)
-  const addClip    = useProjectStore((s) => s.addClip)
-  const _pushHistory = useProjectStore((s) => s._pushHistory)
+  const playhead      = useProjectStore((s) => s.playhead)
+  const tracks        = useProjectStore((s) => s.tracks)
+  const _pushHistory  = useProjectStore((s) => s._pushHistory)
+  const addClipAction = useProjectStore((s) => s.addClip)
+  const setAiJob      = useProjectStore((s) => s.setAiJob)
 
-  const [status, setStatus]     = useState<CatalogStatus>('loading')
-  const [packs, setPacks]       = useState<Pack[]>([])
+  const [status, setStatus]         = useState<CatalogStatus>('loading')
+  const [packs, setPacks]           = useState<CatalogPack[]>([])
   const [activeKind, setActiveKind] = useState<PackKind | null>(null)
 
-  // Simulated catalog fetch — Phase 6 replaces with /api/catalog/packs
-  useEffect(() => {
+  const loadCatalog = () => {
     setStatus('loading')
-    const t = setTimeout(() => {
-      // Simulate occasional fetch failure for demo purposes (never in tests)
-      setPacks(SAMPLE_PACKS)
-      setStatus('loaded')
-    }, 900)
-    return () => clearTimeout(t)
-  }, [])
+    fetchPacks()
+      .then((data) => { setPacks(data); setStatus('loaded') })
+      .catch(() => setStatus('error'))
+  }
+
+  useEffect(loadCatalog, [])
 
   const filtered = activeKind ? packs.filter((p) => p.kind === activeKind) : packs
 
-  const handleInsert = (kind: TimelineClip['kind'], label: string) => {
+  const handleInsert = (pack: CatalogPack) => {
+    const kind: TimelineClip['kind'] = pack.kind
     _pushHistory()
     const track = tracks.find((t) => t.kind === kind) ?? tracks[0]
-    const newClip: TimelineClip = {
-      id: uid(), kind, trackId: track.id, name: label,
+    addClipAction({
+      id: uid(), kind, trackId: track.id, name: pack.label,
       start: Math.round(playhead), in: 0, out: 3, speed: 1,
       x: 0, y: 0, scale: 100, rotate: 0, opacity: 100,
       volume: 100, muted: false, fit: 'contain', blend: 'source-over',
       brightness: 100, contrast: 100, saturate: 100, blur: 0, hue: 0,
       grayscale: 0, sepia: 0, cropL: 0, cropR: 0, cropT: 0, cropB: 0,
       fadeIn: 0, fadeOut: 0, chroma: false, keyColor: '#00ff00', keyThreshold: 0,
-      text: kind === 'text' ? label : undefined, fontSize: 64,
-    }
-    addClip(newClip)
+      text: kind === 'text' ? pack.label : undefined, fontSize: 64,
+    })
+  }
+
+  const handlePlan = (pack: CatalogPack) => {
+    // Set AI job to rough-cut-plan with the pack name as context
+    // User can then open the AI assistant below and run it
+    setAiJob('rough-cut-plan')
+    // Scroll the right-rail so AI assistant is visible
+    // (No forced scroll — user sees the job set in AI assistant section)
+    void pack
   }
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
   if (status === 'loading') {
     return (
       <div className="flex flex-col gap-1.5" aria-label="Loading creator packs" aria-busy="true">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className={`h-12 rounded-md ${pulse}`} />
-        ))}
+        {[1, 2, 3].map((i) => <div key={i} className={`h-12 rounded-md ${pulse}`} />)}
       </div>
     )
   }
@@ -95,10 +87,7 @@ export function CreatorPacks() {
           <span>Couldn't load creator packs.</span>
         </div>
         <button
-          onClick={() => {
-            setStatus('loading')
-            setTimeout(() => { setPacks(SAMPLE_PACKS); setStatus('loaded') }, 900)
-          }}
+          onClick={loadCatalog}
           className="h-7 px-2 rounded border self-start flex items-center gap-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           style={{ borderColor: 'rgb(240 96 107 / 0.4)', color: '#f0606b' }}
         >
@@ -137,26 +126,40 @@ export function CreatorPacks() {
         <EmptyState
           icon={<PanelBottom size={18} />}
           title="No packs match"
-          description={`No ${activeKind ?? ''} packs in the catalog.`}
+          description={`No ${activeKind ?? ''} packs available.`}
         />
       ) : (
         <div className="flex flex-col gap-0.5">
           {filtered.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 p-1.5 rounded-md hover:bg-surface-2">
-              <div
-                className="h-8 w-12 rounded grid place-items-center shrink-0"
-                style={{ background: '#c7a5ff', color: '#1c1430' }}
-                aria-hidden="true"
-              >
-                <PanelBottom size={14} />
+            <div key={p.id} className="rounded-md border border-border hover:bg-surface-2 transition-colors">
+              <div className="flex items-center gap-2 p-1.5">
+                <div
+                  className="h-8 w-12 rounded grid place-items-center shrink-0 text-xs font-medium"
+                  style={{ background: '#c7a5ff22', color: '#c7a5ff', border: '1px solid #c7a5ff44' }}
+                  aria-hidden="true"
+                >
+                  <PanelBottom size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-fg truncate">{p.label}</p>
+                  {p.description && <p className="text-xs text-fg-faint truncate">{p.description}</p>}
+                </div>
               </div>
-              <span className="flex-1 text-sm text-fg truncate">{p.label}</span>
-              <button
-                onClick={() => handleInsert(p.kind, p.label)}
-                className="h-7 px-2 rounded text-xs text-fg-dim border border-border hover:bg-surface hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent shrink-0"
-              >
-                Insert
-              </button>
+              <div className="flex gap-1 px-1.5 pb-1.5">
+                <button
+                  onClick={() => handleInsert(p)}
+                  className="flex-1 h-6 rounded text-xs text-fg-dim border border-border hover:bg-surface hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Insert
+                </button>
+                <button
+                  onClick={() => handlePlan(p)}
+                  title="Set AI assistant to plan this pack"
+                  className="flex-1 h-6 rounded text-xs text-fg-dim border border-border hover:bg-surface hover:text-fg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Plan
+                </button>
+              </div>
             </div>
           ))}
         </div>

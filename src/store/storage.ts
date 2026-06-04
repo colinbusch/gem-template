@@ -18,12 +18,22 @@ export async function loadFromOPFS(): Promise<ProjectState | null> {
   }
 }
 
+// Strip transient fields before serializing — object URLs and thumbnail data
+// URLs are invalid after page reload and must not bloat the persisted JSON.
+function prepareForSave(state: ProjectState): ProjectState {
+  return {
+    ...state,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    assets: state.assets.map(({ url: _url, thumbnail: _thumb, ...rest }) => rest),
+  }
+}
+
 export async function saveToOPFS(state: ProjectState): Promise<void> {
   try {
     const root = await navigator.storage.getDirectory()
     const handle = await root.getFileHandle(OPFS_FILENAME, { create: true })
     const writable = await handle.createWritable()
-    await writable.write(JSON.stringify(state))
+    await writable.write(JSON.stringify(prepareForSave(state)))
     await writable.close()
   } catch (err) {
     console.error('[OPFS] save failed', err)
