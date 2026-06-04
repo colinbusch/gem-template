@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes } from 'react'
 
 interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
-  label: string
+  label?: string
   size?: 'sm' | 'md'
 }
 
@@ -27,7 +27,7 @@ const Toggle = ({ label, size = 'md', className = '', ...props }: ToggleProps) =
           track,
         ].join(' ')}
       />
-      <span className="text-sm text-fg-dim">{label}</span>
+      {label && <span className="text-sm text-fg-dim">{label}</span>}
     </label>
   )
 }
