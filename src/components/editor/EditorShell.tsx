@@ -97,6 +97,8 @@ export function EditorShell() {
   const [booting, setBooting] = useState(true)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
+  const [isNarrow, setIsNarrow] = useState(() => window.innerWidth < 1080)
+  const [sideOpen, setSideOpen] = useState(false)
   const { toasts, push, dismiss } = useToasts()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -126,6 +128,17 @@ export function EditorShell() {
       setTimeout(() => setBooting(false), 700)
     }
     boot()
+  }, [])
+
+  // Narrow viewport detection (< 1080px collapses right rail)
+  useEffect(() => {
+    const update = () => {
+      const narrow = window.innerWidth < 1080
+      setIsNarrow(narrow)
+      if (!narrow) setSideOpen(false)
+    }
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
   }, [])
 
   const toggleTheme = useCallback(() => {
@@ -191,7 +204,14 @@ export function EditorShell() {
   return (
     <div className="w-full h-screen bg-surface text-fg flex flex-col text-sm antialiased select-none overflow-hidden">
       {/* Row 1 — MenuBar 48px */}
-      <MenuBar onPaletteOpen={() => setPaletteOpen(true)} onThemeToggle={toggleTheme} isDark={isDark} />
+      <MenuBar
+        onPaletteOpen={() => setPaletteOpen(true)}
+        onThemeToggle={toggleTheme}
+        isDark={isDark}
+        isNarrow={isNarrow}
+        sideOpen={sideOpen}
+        onSideToggle={() => setSideOpen((v) => !v)}
+      />
 
       {/* Row 2 — WorkspaceBar */}
       <WorkspaceBar />
@@ -200,7 +220,7 @@ export function EditorShell() {
       <div className="flex-1 min-h-0 flex">
         <MediaBin />
         <Stage />
-        <RightRail />
+        <RightRail isNarrow={isNarrow} isOpen={sideOpen} onClose={() => setSideOpen(false)} />
       </div>
 
       {/* Export feedback (progress bar or error banner) */}
