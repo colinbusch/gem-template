@@ -1,6 +1,7 @@
 import { Upload, Type, Square, Zap, PanelBottom, Undo2, Redo2, Scissors, GitMerge, Copy, Trash2, Download, Loader2 } from 'lucide-react'
 import { useProjectStore } from '@/store/project'
 import { uid, clipDur } from '@/lib/utils'
+import { exportProject } from '@/lib/export'
 import type { TimelineClip } from '@/store/types'
 
 function BarGroup({ label, children }: { label: string; children: React.ReactNode }) {
@@ -118,7 +119,7 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
     // undo available via the 80-entry history (store handles it)
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (missingClips.length) {
       setExportState('error')
       return
@@ -126,17 +127,15 @@ export function CommandBar({ onImport }: { onImport: () => void }) {
     setExporting(true)
     setExportState('exporting')
     setExportProgress(0)
-    // TODO: Phase 9 — real MediaRecorder / FFmpeg WASM export
-    let progress = 0
-    const iv = setInterval(() => {
-      progress = Math.min(100, progress + 7)
-      setExportProgress(progress)
-      if (progress >= 100) {
-        clearInterval(iv)
-        setExporting(false)
-        setExportState('done')
-      }
-    }, 130)
+    try {
+      await exportProject(useProjectStore.getState(), (pct) => setExportProgress(pct))
+      setExporting(false)
+      setExportState('done')
+    } catch (err) {
+      console.error('[Export]', err)
+      setExporting(false)
+      setExportState('error')
+    }
   }
 
   const canUndo = _historyIdx > 0

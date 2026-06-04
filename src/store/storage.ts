@@ -40,10 +40,11 @@ export async function saveToOPFS(state: ProjectState): Promise<void> {
   }
 }
 
-// FSA: sync ProjectState JSON into a .hurrcut/ subfolder
-// Phase 9: implement real File System Access API sync
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function syncToFSA(_dirHandle: FileSystemDirectoryHandle, _state: ProjectState): Promise<void> {
-  // TODO: Phase 9 — write project.json into dirHandle/.hurrcut/
-  console.warn('[FSA] syncToFSA is a stub — Phase 9 will implement this')
+// FSA: write project.json into <selectedFolder>/.hurrcut/project.json
+export async function syncToFSA(dirHandle: FileSystemDirectoryHandle, state: ProjectState): Promise<void> {
+  const hurrcut = await dirHandle.getDirectoryHandle('.hurrcut', { create: true })
+  const fileHandle = await hurrcut.getFileHandle('project.json', { create: true })
+  const writable = await fileHandle.createWritable()
+  await writable.write(JSON.stringify(prepareForSave(state), null, 2))
+  await writable.close()
 }

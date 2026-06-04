@@ -1,137 +1,22 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { Play, Pause, SkipBack, SkipForward, ZoomIn, ZoomOut, Magnet, Frame, Film } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, ZoomIn, ZoomOut, Magnet, Frame } from 'lucide-react'
 import { IconButton } from '@/components/ui'
 import { useProjectStore } from '@/store/project'
-import { fmtTime, KIND_COLOR } from '@/lib/utils'
-import { clipDur } from '@/lib/utils'
+import { fmtTime, clipDur } from '@/lib/utils'
+import { Renderer } from '@/lib/renderer'
 
-function PreviewCanvas() {
+export function Stage() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rendererRef = useRef<Renderer | null>(null)
+
   const clips = useProjectStore((s) => s.clips)
   const assets = useProjectStore((s) => s.assets)
   const playhead = useProjectStore((s) => s.playhead)
-  const safeGuides = useProjectStore((s) => s.safeGuides)
   const settings = useProjectStore((s) => s.settings)
-
-  const active = clips
-    .filter((c) => playhead >= c.start && playhead < c.start + clipDur(c) && c.kind !== 'audio')
-    .sort((a, b) => a.trackId - b.trackId) // lower trackId renders on top
-
-  return (
-    <div
-      className="relative bg-black rounded-lg overflow-hidden"
-      style={{ width: 'min(100%, 720px)', aspectRatio: '16 / 9' }}
-      role="img"
-      aria-label={`Preview at ${fmtTime(playhead)}`}
-    >
-      {active.length === 0 && (
-        <div className="absolute inset-0 grid place-items-center text-fg-faint text-xs">
-          Add media to the timeline to preview
-        </div>
-      )}
-
-      {active.map((c) => {
-        const filter = [
-          `brightness(${c.brightness}%)`,
-          `contrast(${c.contrast}%)`,
-          `saturate(${c.saturate}%)`,
-          `blur(${c.blur}px)`,
-          c.grayscale > 0 ? `grayscale(${c.grayscale}%)` : '',
-          c.sepia > 0 ? `sepia(${c.sepia}%)` : '',
-        ].filter(Boolean).join(' ')
-
-        const transform = `translate(-50%,-50%) translate(${c.x}px,${c.y}px) scale(${c.scale / 100}) rotate(${c.rotate}deg)`
-        const baseStyle: React.CSSProperties = {
-          position: 'absolute',
-          left: '50%',
-          top: '50%',
-          transform,
-          opacity: c.opacity / 100,
-          filter,
-        }
-
-        const asset = assets.find((a) => a.id === c.assetId)
-
-        if (c.kind === 'text') {
-          return (
-            <div
-              key={c.id}
-              style={{
-                ...baseStyle,
-                color: c.textColor ?? '#fff',
-                fontWeight: c.fontWeight ?? 800,
-                fontSize: (c.fontSize ?? 64) * 0.42,
-                textShadow: '0 2px 12px rgba(0,0,0,.5)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {c.text}
-            </div>
-          )
-        }
-
-        if (c.kind === 'shape') {
-          return (
-            <div
-              key={c.id}
-              style={{
-                ...baseStyle,
-                width: '70%',
-                height: 56,
-                borderRadius: 8,
-                background: 'rgba(199,165,255,0.75)',
-              }}
-            />
-          )
-        }
-
-        // video / image placeholder
-        return (
-          <div
-            key={c.id}
-            style={{
-              ...baseStyle,
-              width: '78%',
-              height: '78%',
-              borderRadius: 6,
-              background: 'rgba(12,22,32,0.9)',
-              border: `1px solid ${KIND_COLOR.video}55`,
-              display: 'grid',
-              placeItems: 'center',
-              color: KIND_COLOR.video,
-            }}
-          >
-            <div className="text-center">
-              <Film size={22} aria-hidden="true" />
-              <p className="text-xs mt-1 text-fg-faint">{asset?.name ?? c.name}</p>
-            </div>
-          </div>
-        )
-      })}
-
-      {/* Safe guides overlay */}
-      {safeGuides && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ outline: '1px dashed rgba(255,255,255,0.18)', outlineOffset: '-8%' }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Canvas size watermark */}
-      <div className="absolute bottom-1 right-2 text-xs font-mono tabular-nums text-fg-faint/50 pointer-events-none" aria-hidden="true">
-        {settings.width}×{settings.height}
-      </div>
-    </div>
-  )
-}
-
-export function Stage() {
-  const playhead = useProjectStore((s) => s.playhead)
+  const safeGuides = useProjectStore((s) => s.safeGuides)
   const isPlaying = useProjectStore((s) => s.isPlaying)
   const zoom = useProjectStore((s) => s.zoom)
   const snap = useProjectStore((s) => s.snap)
-  const safeGuides = useProjectStore((s) => s.safeGuides)
-  const clips = useProjectStore((s) => s.clips)
   const setPlayhead = useProjectStore((s) => s.setPlayhead)
   const setPlaying = useProjectStore((s) => s.setPlaying)
   const setZoom = useProjectStore((s) => s.setZoom)
@@ -139,11 +24,65 @@ export function Stage() {
   const setSafeGuides = useProjectStore((s) => s.setSafeGuides)
 
   const duration = clips.reduce((m, c) => Math.max(m, c.start + clipDur(c)), 0) || 1
+  const hasVisibleClips = clips.some(
+    (c) => playhead >= c.start && playhead < c.start + clipDur(c) && c.kind !== 'audio',
+  )
 
-  // RAF playback loop
   const rafRef = useRef(0)
   const lastRef = useRef(0)
 
+  // Create renderer once on mount; dispose on unmount
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    canvas.width = settings.width
+    canvas.height = settings.height
+    const renderer = new Renderer(canvas)
+    rendererRef.current = renderer
+    const s = useProjectStore.getState()
+    renderer.render(s.clips, s.assets, s.playhead, s.settings)
+    return () => {
+      renderer.dispose()
+      rendererRef.current = null
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep canvas resolution in sync with project settings
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    canvas.width = settings.width
+    canvas.height = settings.height
+    const s = useProjectStore.getState()
+    rendererRef.current?.render(s.clips, s.assets, s.playhead, s.settings)
+  }, [settings.width, settings.height]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-render on any preview-relevant state change (scrub, clip edit, etc.)
+  useEffect(() => {
+    rendererRef.current?.render(clips, assets, playhead, settings)
+  }, [clips, assets, playhead, settings])
+
+  // Sync video element playback state when play/pause changes
+  useEffect(() => {
+    const renderer = rendererRef.current
+    if (!renderer) return
+    const { clips: c, assets: a, playhead: ph } = useProjectStore.getState()
+    for (const clip of c) {
+      if (clip.kind !== 'video') continue
+      const asset = a.find((x) => x.id === clip.assetId)
+      if (!asset?.url) continue
+      const el = renderer.getVideoEl(asset)
+      if (isPlaying) {
+        el.currentTime = Math.max(0, clip.in + (ph - clip.start) * clip.speed)
+        el.play().catch(() => {})
+      } else {
+        el.pause()
+        el.currentTime = Math.max(0, clip.in + (ph - clip.start) * clip.speed)
+      }
+    }
+  }, [isPlaying])
+
+  // RAF playback loop
   const tick = useCallback(
     (now: number) => {
       const dt = (now - lastRef.current) / 1000
@@ -153,9 +92,11 @@ export function Stage() {
       if (next >= duration) {
         store.setPlaying(false)
         store.setPlayhead(duration)
+        rendererRef.current?.render(store.clips, store.assets, duration, store.settings)
         return
       }
       store.setPlayhead(next)
+      rendererRef.current?.render(store.clips, store.assets, next, store.settings)
       rafRef.current = requestAnimationFrame(tick)
     },
     [duration],
@@ -173,7 +114,36 @@ export function Stage() {
     <main className="flex-1 min-w-0 bg-surface flex flex-col">
       {/* Preview */}
       <div className="flex-1 min-h-0 grid place-items-center p-6">
-        <PreviewCanvas />
+        <div
+          className="relative rounded-lg overflow-hidden"
+          style={{ width: 'min(100%, 720px)', aspectRatio: '16 / 9', background: settings.bg }}
+          role="img"
+          aria-label={`Preview at ${fmtTime(playhead)}`}
+        >
+          <canvas ref={canvasRef} className="w-full h-full" />
+
+          {!hasVisibleClips && (
+            <div className="absolute inset-0 grid place-items-center text-fg-faint text-xs pointer-events-none">
+              Add media to the timeline to preview
+            </div>
+          )}
+
+          {safeGuides && (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ outline: '1px dashed rgba(255,255,255,0.18)', outlineOffset: '-8%' }}
+              aria-hidden="true"
+            />
+          )}
+
+          <div
+            className="absolute bottom-1 right-2 text-xs font-mono tabular-nums pointer-events-none"
+            style={{ color: 'rgba(255,255,255,0.3)' }}
+            aria-hidden="true"
+          >
+            {settings.width}×{settings.height}
+          </div>
+        </div>
       </div>
 
       {/* Transport bar — under preview (Jakob's Law convention for video editors) */}
@@ -196,7 +166,6 @@ export function Stage() {
           onClick={() => setPlayhead(duration)}
         />
 
-        {/* Timecode */}
         <div className="px-2 font-mono tabular-nums text-sm" aria-live="off" aria-atomic="true">
           <span className="text-fg">{fmtTime(playhead)}</span>
           <span className="text-fg-faint"> / {fmtTime(duration)}</span>
@@ -204,7 +173,6 @@ export function Stage() {
 
         <div className="flex-1" />
 
-        {/* Timeline controls (zoom, snap, guides) */}
         <div className="flex items-center gap-1">
           <IconButton
             aria-label="Zoom out timeline"
