@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 
 // Routes — lazy-loaded per phase
 const PrimitivesDemo = lazy(() => import('./routes/demo/PrimitivesDemo'))
+const WebEditor = lazy(() => import('./routes/web/WebEditor'))
 
 // TODO: Phase 2 — Editor shell /web
 // TODO: Phase 7 — Secondary routes: /, /login, /settings, /about
@@ -21,10 +22,14 @@ export default function App() {
     <BrowserRouter>
       <Suspense fallback={<LoadingShell />}>
         <Routes>
+          {/* Phase 2 — main editor */}
+          <Route path="/web" element={<WebEditor />} />
           {/* Phase 1 primitives demo */}
           <Route path="/demo" element={<PrimitivesDemo />} />
-          {/* Redirect root to demo until marketing page is built */}
-          <Route path="/" element={<Navigate to="/demo" replace />} />
+          {/* Redirect root to /web until marketing page is built (Phase 7) */}
+          <Route path="/" element={<Navigate to="/web" replace />} />
+          {/* Legacy redirect */}
+          <Route path="/app" element={<Navigate to="/web" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
