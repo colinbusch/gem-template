@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import { AuthGate } from './components/site/AuthGate'
 
 const PrimitivesDemo = lazy(() => import('./routes/demo/PrimitivesDemo'))
 const WebEditor      = lazy(() => import('./routes/web/WebEditor'))
@@ -7,6 +8,7 @@ const HomePage       = lazy(() => import('./routes/home/HomePage'))
 const LoginPage      = lazy(() => import('./routes/login/LoginPage'))
 const SettingsPage   = lazy(() => import('./routes/settings/SettingsPage'))
 const AboutPage      = lazy(() => import('./routes/about/AboutPage'))
+const MatrixPage     = lazy(() => import('./routes/matrix/MatrixPage'))
 
 function LoadingShell() {
   return (
@@ -28,6 +30,8 @@ export default function App() {
           <Route path="/about"    element={<AboutPage />} />
           {/* Main editor */}
           <Route path="/web"      element={<WebEditor />} />
+          {/* Phase 8 — /matrix behind AuthGate */}
+          <Route path="/matrix" element={<AuthGate><MatrixPage /></AuthGate>} />
           {/* Phase 1 primitives demo */}
           <Route path="/demo"     element={<PrimitivesDemo />} />
           {/* Legacy redirect */}

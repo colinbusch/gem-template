@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { AlertTriangle, Loader2 } from 'lucide-react'
+import { setAuthenticated } from '@/lib/auth'
 
 type Provider = 'google' | 'microsoft' | 'github'
 
@@ -51,12 +52,18 @@ const TIERS = [
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [loading, setLoading] = useState<Provider | null>(null)
+
+  const redirectTo = searchParams.get('redirect') ?? '/web'
 
   const handleSignIn = (provider: Provider) => {
     setLoading(provider)
-    // Mock OAuth — simulate a brief redirect delay, then go to editor
-    setTimeout(() => navigate('/web'), 900)
+    // Mock OAuth — simulate a brief redirect delay, then go to redirect target
+    setTimeout(() => {
+      setAuthenticated(true)
+      navigate(redirectTo)
+    }, 900)
   }
 
   return (
