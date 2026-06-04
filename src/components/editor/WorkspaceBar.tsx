@@ -15,7 +15,7 @@ export function WorkspaceBar() {
   const handlePickFolder = async () => {
     try {
       const handle = await (
-        window as Window & { showDirectoryPicker(): Promise<FileSystemDirectoryHandle> }
+        window as unknown as { showDirectoryPicker(): Promise<FileSystemDirectoryHandle> }
       ).showDirectoryPicker()
       dirHandleRef.current = handle
       setFolderName(handle.name)

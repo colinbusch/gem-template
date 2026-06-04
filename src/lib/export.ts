@@ -71,7 +71,7 @@ export async function exportProject(
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data) }
 
   await new Promise<void>((resolve, reject) => {
-    recorder.onstop = resolve
+    recorder.onstop = () => resolve()
     recorder.onerror = (e) => reject(new Error(String(e)))
     recorder.start(100) // chunk every 100 ms
 
