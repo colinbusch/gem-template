@@ -94,6 +94,10 @@ interface ProjectStore extends ProjectState {
   // Timeline calls _pushHistory() once on pointerdown, then _setClipLive() each pointermove.
   _setClipLive: (id: string, patch: Partial<TimelineClip>) => void
 
+  // Flush pending changes to OPFS without pushing history.
+  // Call after a live-update gesture completes (pointerup, blur).
+  triggerSave: () => void
+
   // Merge selected clip with adjacent clip on same track
   mergeClip: (id: string) => void
 }
@@ -196,6 +200,8 @@ export const useProjectStore = create<ProjectStore>()(
     _setClipLive: (id, patch) => {
       set((s) => ({ clips: s.clips.map((c) => (c.id === id ? { ...c, ...patch } : c)) }))
     },
+
+    triggerSave: () => { debouncedSave(get()) },
 
     mergeClip: (id) => {
       const { clips } = get()
