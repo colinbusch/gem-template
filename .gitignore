@@ -7,6 +7,7 @@ node_modules
 
 # Build output
 build
+dist
 .svelte-kit
 
 # Environment — never commit real secrets
@@ -26,3 +27,7 @@ npm-debug.log*
 # Editor / tool caches
 .idea
 .vscode/settings.json
+
+# Playwright output
+test-results/
+playwright-report/

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * HurrCut tokens — light + dark. Channels are space-separated RGB so Tailwind's
+ * `<alpha-value>` works (e.g. `bg-surface/70`). This is the single source of
+ * truth the old app lacked (extraction obs. #3). Light mode is FULLY defined
+ * here — do not hardcode hex in components (old app's light mode was partial).
+ */
+:root {
+  /* neutral base — light (Wada: warm canvas/cream) */
+  --surface-0: 246 241 233;
+  --surface-1: 252 249 244;
+  --surface-2: 239 234 224;
+  --fg: 26 20 14;
+  --fg-dim: 107 91 76;
+  --fg-faint: 157 141 126;
+  --border: 214 206 195;
+  --border-strong: 196 186 174;
+
+  /* accent — deep terracotta */
+  --accent: 140 74 47;
+  --accent-hover: 163 91 62;
+  --accent-fg: 255 255 255;
+}
+
+.dark {
+  /* neutral base — dark (Wada: deep espresso near-black) */
+  --surface-0: 22 17 12;
+  --surface-1: 32 26 19;
+  --surface-2: 44 37 28;
+  --fg: 241 236 227;
+  --fg-dim: 162 146 130;
+  --fg-faint: 112 97 83;
+  --border: 58 49 38;
+  --border-strong: 78 67 52;
+
+  /* accent — brighter terracotta for dark contrast */
+  --accent: 176 94 62;
+  --accent-hover: 196 114 80;
+  --accent-fg: 255 255 255;
+}
+
+@layer base {
+  html { @apply bg-surface text-fg; }
+  body { @apply antialiased; font-family: theme("fontFamily.sans"); }
+
+  /* Unified focus style across the whole app (old app had several). */
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-accent;
+  }
+}
+
+/*
+ * Respect reduced motion EVERYWHERE (old app missed CommandBar/Timeline/Inspector).
+ * This is a global backstop; still prefer minimal motion by design.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

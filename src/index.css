@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/*
+ * HurrCut tokens — light + dark. Channels are space-separated RGB so Tailwind's
+ * opacity modifier works (e.g. `bg-surface/70`). This is the single source of
+ * truth the old app lacked (extraction obs. #3). Light mode is FULLY defined
+ * here — do not hardcode hex in components (old app's light mode was partial).
+ */
+
+@theme {
+  /* neutral base resolved from CSS custom properties */
+  --color-surface: rgb(var(--surface-0) / <alpha-value>);
+  --color-surface-1: rgb(var(--surface-1) / <alpha-value>);
+  --color-surface-2: rgb(var(--surface-2) / <alpha-value>);
+  --color-fg: rgb(var(--fg) / <alpha-value>);
+  --color-fg-dim: rgb(var(--fg-dim) / <alpha-value>);
+  --color-fg-faint: rgb(var(--fg-faint) / <alpha-value>);
+  --color-border: rgb(var(--border) / <alpha-value>);
+  --color-border-strong: rgb(var(--border-strong) / <alpha-value>);
+
+  /* single accent — primary path to outcome (Export). Nothing else. */
+  --color-accent: rgb(var(--accent) / <alpha-value>);
+  --color-accent-hover: rgb(var(--accent-hover) / <alpha-value>);
+  --color-accent-fg: rgb(var(--accent-fg) / <alpha-value>);
+
+  /* data-viz / semantic SIGNAL — §5 exception, one hue = one meaning */
+  --color-signal-video: #58d3ff;
+  --color-signal-image: #58d3ff;
+  --color-signal-audio: #86e89f;
+  --color-signal-text: #f2cf67;
+  --color-signal-shape: #c7a5ff;
+  --color-signal-overlay: #c7a5ff;
+  --color-signal-playhead: #ff856f;
+  --color-signal-ok: #86e89f;
+  --color-signal-warn: #f5b13d;
+  --color-signal-error: #f0606b;
+
+  /* typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* radius — crisp geometric surfaces (Mid-Century Modern); cap at lg */
+  --radius-DEFAULT: 3px;
+  --radius-md: 3px;
+  --radius-lg: 5px;
+
+  /* elevation — only for real floating elements */
+  --shadow-elevate: 0 8px 24px rgb(0 0 0 / 0.22);
+}
+
+:root {
+  /* neutral base — light (Wada: warm canvas/cream) */
+  --surface-0: 246 241 233;   /* #f6f1e9 warm cream */
+  --surface-1: 252 249 244;   /* #fcf9f4 warm white */
+  --surface-2: 239 234 224;   /* #efe4e0 light sand */
+  --fg: 26 20 14;             /* #1a140e deep espresso */
+  --fg-dim: 107 91 76;        /* #6b5b4c warm mid-brown */
+  --fg-faint: 157 141 126;    /* #9d8d7e warm taupe */
+  --border: 214 206 195;      /* #d6cec3 visible warm hairline */
+  --border-strong: 196 186 174; /* #c4baae */
+
+  /* accent — deep terracotta; warm, earthy, distinct from all signal hues */
+  --accent: 140 74 47;        /* #8c4a2f */
+  --accent-hover: 163 91 62;  /* #a35b3e */
+  --accent-fg: 255 255 255;
+}
+
+.dark {
+  /* neutral base — dark (Wada: deep espresso near-black) */
+  --surface-0: 22 17 12;      /* #16110c near-black espresso */
+  --surface-1: 32 26 19;      /* #201a13 dark warm */
+  --surface-2: 44 37 28;      /* #2c251c slightly lifted */
+  --fg: 241 236 227;          /* #f1ece3 warm cream */
+  --fg-dim: 162 146 130;      /* #a29282 warm mid */
+  --fg-faint: 112 97 83;      /* #706153 warm faint */
+  --border: 58 49 38;         /* #3a3126 visible warm dark line */
+  --border-strong: 78 67 52;  /* #4e4334 */
+
+  /* accent — slightly brighter terracotta for dark contrast */
+  --accent: 176 94 62;        /* #b05e3e */
+  --accent-hover: 196 114 80; /* #c47250 */
+  --accent-fg: 255 255 255;
+}
+
+@layer base {
+  html {
+    @apply bg-surface text-fg;
+  }
+  body {
+    @apply antialiased;
+    font-family: theme(fontFamily.sans);
+  }
+
+  /* Unified focus style — old app had several inconsistent ones */
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-1 ring-offset-surface;
+  }
+}
+
+/*
+ * Respect reduced motion EVERYWHERE (old app missed CommandBar/Timeline/Inspector).
+ * Global backstop — still prefer minimal motion by design.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
