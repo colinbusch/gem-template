@@ -63,15 +63,15 @@ export default {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       borderRadius: {
-        // Surfaces cap at lg (8px). rounded-full is for badges/pills only.
-        DEFAULT: "6px",
-        md: "6px",
-        lg: "8px",
+        // Crisp geometric surfaces (Mid-Century Modern). Cap at lg; full for badges only.
+        DEFAULT: "3px",
+        md: "3px",
+        lg: "5px",
       },
       boxShadow: {
         // Elevation only for real floating elements (menus, popovers, dialogs, toasts).
         // No decorative shadows on cards/containers.
-        elevate: "0 8px 24px rgb(0 0 0 / 0.18)",
+        elevate: "0 8px 24px rgb(0 0 0 / 0.22)",
       },
     },
   },

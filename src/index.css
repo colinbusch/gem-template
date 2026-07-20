@@ -39,45 +39,46 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* radius — surfaces cap at lg (8px), rounded-full for badges only */
-  --radius-DEFAULT: 6px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  /* radius — crisp geometric surfaces (Mid-Century Modern); cap at lg */
+  --radius-DEFAULT: 3px;
+  --radius-md: 3px;
+  --radius-lg: 5px;
 
   /* elevation — only for real floating elements */
-  --shadow-elevate: 0 8px 24px rgb(0 0 0 / 0.18);
+  --shadow-elevate: 0 8px 24px rgb(0 0 0 / 0.22);
 }
 
 :root {
-  /* neutral base — light */
-  --surface-0: 250 250 250;   /* zinc-50  */
-  --surface-1: 255 255 255;
-  --surface-2: 244 244 245;   /* zinc-100 */
-  --fg: 24 24 27;             /* zinc-900 */
-  --fg-dim: 113 113 122;      /* zinc-500 */
-  --fg-faint: 161 161 170;    /* zinc-400 */
-  --border: 228 228 231;      /* zinc-200 */
-  --border-strong: 212 212 216;
+  /* neutral base — light (Wada: warm canvas/cream) */
+  --surface-0: 246 241 233;   /* #f6f1e9 warm cream */
+  --surface-1: 252 249 244;   /* #fcf9f4 warm white */
+  --surface-2: 239 234 224;   /* #efe4e0 light sand */
+  --fg: 26 20 14;             /* #1a140e deep espresso */
+  --fg-dim: 107 91 76;        /* #6b5b4c warm mid-brown */
+  --fg-faint: 157 141 126;    /* #9d8d7e warm taupe */
+  --border: 214 206 195;      /* #d6cec3 visible warm hairline */
+  --border-strong: 196 186 174; /* #c4baae */
 
-  /* single accent — distinct from signal.video (#58d3ff) */
-  --accent: 37 99 235;        /* blue-600 */
-  --accent-hover: 59 130 246; /* blue-500 */
+  /* accent — deep terracotta; warm, earthy, distinct from all signal hues */
+  --accent: 140 74 47;        /* #8c4a2f */
+  --accent-hover: 163 91 62;  /* #a35b3e */
   --accent-fg: 255 255 255;
 }
 
 .dark {
-  /* neutral base — dark (deliberate near-black, not pure #000) */
-  --surface-0: 9 9 11;        /* zinc-950 */
-  --surface-1: 24 24 27;      /* zinc-900 */
-  --surface-2: 39 39 42;      /* zinc-800 */
-  --fg: 244 244 245;          /* zinc-100 */
-  --fg-dim: 161 161 170;      /* zinc-400 */
-  --fg-faint: 113 113 122;    /* zinc-500 */
-  --border: 39 39 42;         /* zinc-800 */
-  --border-strong: 63 63 70;  /* zinc-700 */
+  /* neutral base — dark (Wada: deep espresso near-black) */
+  --surface-0: 22 17 12;      /* #16110c near-black espresso */
+  --surface-1: 32 26 19;      /* #201a13 dark warm */
+  --surface-2: 44 37 28;      /* #2c251c slightly lifted */
+  --fg: 241 236 227;          /* #f1ece3 warm cream */
+  --fg-dim: 162 146 130;      /* #a29282 warm mid */
+  --fg-faint: 112 97 83;      /* #706153 warm faint */
+  --border: 58 49 38;         /* #3a3126 visible warm dark line */
+  --border-strong: 78 67 52;  /* #4e4334 */
 
-  --accent: 37 99 235;
-  --accent-hover: 59 130 246;
+  /* accent — slightly brighter terracotta for dark contrast */
+  --accent: 176 94 62;        /* #b05e3e */
+  --accent-hover: 196 114 80; /* #c47250 */
   --accent-fg: 255 255 255;
 }
 

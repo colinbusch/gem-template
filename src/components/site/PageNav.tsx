@@ -13,8 +13,7 @@ export function PageNav() {
         className="flex items-center gap-2 text-sm font-semibold text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
       >
         <span
-          className="h-6 w-6 rounded grid place-items-center shrink-0"
-          style={{ background: '#58d3ff', color: '#070b10' }}
+          className="h-6 w-6 rounded grid place-items-center shrink-0 bg-accent text-accent-fg"
           aria-hidden="true"
         >
           <Scissors size={14} />

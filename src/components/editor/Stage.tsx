@@ -111,8 +111,8 @@ export function Stage() {
   }, [isPlaying, tick])
 
   return (
-    <main className="flex-1 min-w-0 bg-surface flex flex-col">
-      {/* Preview */}
+    <main className="flex-1 min-w-0 flex flex-col" style={{ background: '#0e0b08' }}>
+      {/* Preview — deep dark mat frames the canvas as centerpiece */}
       <div className="flex-1 min-h-0 grid place-items-center p-6">
         <div
           className="relative rounded-lg overflow-hidden"

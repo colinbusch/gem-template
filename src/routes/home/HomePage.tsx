@@ -30,8 +30,7 @@ export default function HomePage() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-4">
             <span
-              className="h-8 w-8 rounded grid place-items-center"
-              style={{ background: '#58d3ff', color: '#070b10' }}
+              className="h-8 w-8 rounded grid place-items-center bg-accent text-accent-fg"
               aria-hidden="true"
             >
               <Scissors size={18} />

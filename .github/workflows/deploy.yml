@@ -39,6 +39,9 @@ jobs:
 
   deploy:
     needs: build
+    # Only deploy on main or manual dispatch — Pages env is restricted to main.
+    # Feature branch pushes skip this job (green skip, not red fail).
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
